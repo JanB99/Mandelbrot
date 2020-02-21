@@ -4,13 +4,20 @@ import java.awt.*;
 
 public class Mandelbrot {
 
-    public float xoff, yoff, minValue, maxValue;
+    public double xoff, yoff;
+    public double minValue, maxValue;
+    public double screenOffsetx, screenOffsety;
+    public int infinityLimit, maxIterations;
 
     public Mandelbrot(){
         xoff = Main.WIDTH/2;
         yoff = Main.HEIGHT/2;
-        minValue = -2;
-        maxValue = 2;
+        minValue = -2.5f;
+        maxValue = 2.5f;
+        screenOffsetx = 0;
+        screenOffsety = 0;
+        infinityLimit = 64;
+        maxIterations = 100;
     }
 
     public void render(Graphics g){
@@ -23,44 +30,46 @@ public class Mandelbrot {
                 g.fillRect(x, y, 1, 1);
             }
         }
+//        infinityLimit++;
+//        maxIterations++;
     }
 
     public void tick(){
 
     }
 
-    public Color getMandelbrotColor(float x, float y, float xoff, float yoff){
-        x = map(x, 0, Main.WIDTH, minValue, maxValue);
-        y = map(y, 0, Main.HEIGHT, minValue, maxValue);
+    public Color getMandelbrotColor(double x, double y, double xoff, double yoff){
+        x = (float) map(x + screenOffsetx, 0, Main.WIDTH, minValue, maxValue);
+        y = (float) map(y + screenOffsety, 0, Main.HEIGHT, minValue, maxValue);
 
-        xoff = map(xoff, 0, Main.WIDTH, minValue, maxValue);
-        yoff = map(yoff, 0, Main.HEIGHT, minValue, maxValue);
+        xoff = map(xoff, 0, Main.WIDTH, -0.5, 0.5);
+        yoff = map(yoff, 0, Main.HEIGHT, -0.5, 0.5);
 
-        float originalx = x;
-        float originaly = y;
+        double originalx = x;
+        double originaly = y;
 
         int n = 0;
 
-        while (n < 50) {
+        while (n < maxIterations) {
 
-            float xx = x * x - y * y;
-            float yy = 2 * x * y;
-
-            if (Math.abs(xx + yy) > 16) {
-                break;
-            }
+            double xx = x * x - y * y;
+            double yy = 2 * x * y;
 
             x = xx + originalx + xoff;
             y = yy + originaly + yoff;
 
+            if (Math.abs(xx + yy) > infinityLimit) {
+                break;
+            }
+
             n++;
         }
-        int color = (n*16) % 255;
+        float color = (float) map(n, 0, infinityLimit, 0, 1);//(n*infinityLimit) % 360;
 
-        return new Color(color, color, color);//map(n, 0, 100, 0, 255);
+        return Color.getHSBColor(color, 1, 1);//new Color(200, color, 100);//map(n, 0, 100, 0, 255);
     }
 
-    public float map(float n, float start1, float stop1, float start2, float stop2){
+    public double map(double n, double start1, double stop1, double start2, double stop2){
         return ((n - start1) / (stop1 - start1)) * (stop2 - start2) + start2;
     }
 }

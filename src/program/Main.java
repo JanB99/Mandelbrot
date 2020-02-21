@@ -1,12 +1,15 @@
 package program;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.image.BufferStrategy;
+import java.awt.image.BufferedImage;
+import java.io.FileOutputStream;
 
 public class Main extends Canvas implements Runnable{
 
-    public static final int WIDTH = 600, HEIGHT = 600;
+    public static final int WIDTH = 500, HEIGHT = 500;
 
     private Window window;
     private Thread thread;
@@ -14,15 +17,18 @@ public class Main extends Canvas implements Runnable{
     private Mandelbrot mandelbrot;
     private MouseController mouseAdapter;
     private MouseWheelController mouseWheelAdapter;
+    private KeyController keyAdapter;
 
     public Main(){
 
         mandelbrot = new Mandelbrot();
         mouseAdapter = new MouseController(mandelbrot);
-        mouseWheelAdapter = new MouseWheelController(mandelbrot);
+        mouseWheelAdapter = new MouseWheelController(mandelbrot, mouseAdapter);
+        keyAdapter = new KeyController(this);
 
         this.addMouseMotionListener(mouseAdapter);
         this.addMouseWheelListener(mouseWheelAdapter);
+        this.addKeyListener(keyAdapter);
 
         window = new Window("Mandelbrot", WIDTH, HEIGHT, this);
     }
@@ -97,5 +103,20 @@ public class Main extends Canvas implements Runnable{
 
     private void tick() {
         mandelbrot.tick();
+    }
+
+    public void saveCanvasToImage(String name){
+        BufferedImage image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
+        Graphics g = image.createGraphics();
+        mandelbrot.render(g);
+        g.dispose();
+        try {
+            System.out.println("Exporting image: "+name);
+            FileOutputStream out = new FileOutputStream("mandelbrot_images/"+name+".png");
+            ImageIO.write(image, "png", out);
+            out.close();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
     }
 }
